@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Spin - PS Selection</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Wheel of Spin</h1>
+            <p class="subtitle">Select your PS (Problem Statement). Max 6 members per PS.</p>
+        </header>
+
+        <main>
+            <div class="wheel-section">
+                <div class="wheel-container">
+                    <canvas id="wheelCanvas" width="500" height="500"></canvas>
+                    <div class="pointer"></div>
+                    <button id="spinBtn">SPIN</button>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <div class="card">
+                    <h2>Statistics</h2>
+                    <div class="stats-container">
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Problem Statement</th>
+                                    <th>Members</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="psTableBody">
+                                <!-- Table rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="total-members">
+                        Total Members: <span id="memberCount">0</span> / 28
+                    </div>
+                    <button id="resetBtn" class="reset-btn">Reset All Data</button>
+                </div>
+
+                <div class="card history-card">
+                    <h2>Recent Spins</h2>
+                    <ul id="spinHistory" class="history-list">
+                        <!-- History will be injected here -->
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Celebration Overlay -->
+    <div id="winOverlay" class="overlay hidden">
+        <div class="overlay-content">
+            <h2 id="winTitle">Congratulations!</h2>
+            <p id="winMessage"></p>
+            <button id="closeOverlay">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
