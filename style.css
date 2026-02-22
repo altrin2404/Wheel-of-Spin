@@ -431,3 +431,82 @@ main {
         transform: translateX(0);
     }
 }
+
+/* Year Selection Overlay Specifics */
+.selection-card {
+    max-width: 480px;
+    padding: 3.5rem 2.5rem;
+}
+
+.selection-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.selection-btn {
+    flex: 1;
+    background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem 1rem;
+    border-radius: 1.25rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.selection-btn::after {
+    content: 'Click to select';
+    font-size: 0.75rem;
+    font-weight: 400;
+    opacity: 0.7;
+}
+
+.selection-btn:hover {
+    transform: translateY(-8px) scale(1.05);
+    background: linear-gradient(135deg, #4f46e5 0%, var(--primary) 100%);
+    box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.6);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.selection-btn:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    main {
+        gap: 1.5rem;
+    }
+
+    .wheel-container {
+        width: 340px;
+        height: 340px;
+    }
+
+    .selection-buttons {
+        flex-direction: column;
+    }
+
+    .selection-btn {
+        padding: 1.2rem;
+    }
+}
