@@ -3,13 +3,28 @@ const ctx = canvas.getContext('2d');
 const spinBtn = document.getElementById('spinBtn');
 const psTableBody = document.getElementById('psTableBody');
 const memberCountEl = document.getElementById('memberCount');
+const maxParticipantsEl = document.getElementById('maxParticipants');
 const spinHistoryEl = document.getElementById('spinHistory');
 const winOverlay = document.getElementById('winOverlay');
 const winTitle = document.getElementById('winTitle');
 const winMessage = document.getElementById('winMessage');
 const closeOverlayBtn = document.getElementById('closeOverlay');
-
 const resetBtn = document.getElementById('resetBtn');
+
+const yearSelectOverlay = document.getElementById('yearSelectOverlay');
+const selectYear3Btn = document.getElementById('selectYear3Btn');
+const selectYear4Btn = document.getElementById('selectYear4Btn');
+const showYear3Btn = document.getElementById('showYear3Btn');
+const showYear4Btn = document.getElementById('showYear4Btn');
+const mainTitle = document.getElementById('mainTitle');
+
+let currentYear = '3rd'; // Default
+const CONFIG = {
+    '3rd': { total: 14, title: 'Wheel of Spin - 3rd Year' },
+    '4th': { total: 12, title: 'Wheel of Spin - 4th Year' }
+};
+
+const MAX_PER_PS = 3;
 
 let PS_OPTIONS = [
     { label: 'PS 1', color: '#f87171', count: 0 },
@@ -19,33 +34,73 @@ let PS_OPTIONS = [
     { label: 'PS 5', color: '#a78bfa', count: 0 }
 ];
 
-const MAX_PER_PS = 6;
-const TOTAL_MEMBERS = 28;
 let currentMembers = 0;
 let isSpinning = false;
 let rotation = 0;
 let history = [];
 
 // Persistence Logic
+function getStorageKey() {
+    return `wheelState_${currentYear}`;
+}
+
 function saveState() {
     const state = {
         options: PS_OPTIONS,
         currentMembers,
         history
     };
-    localStorage.setItem('wheelState', JSON.stringify(state));
+    localStorage.setItem(getStorageKey(), JSON.stringify(state));
 }
 
 function loadState() {
-    const saved = localStorage.getItem('wheelState');
+    const saved = localStorage.getItem(getStorageKey());
     if (saved) {
         const state = JSON.parse(saved);
         PS_OPTIONS = state.options;
         currentMembers = state.currentMembers;
         history = state.history;
-        return true;
+    } else {
+        // Reset to defaults for this year
+        PS_OPTIONS.forEach(opt => opt.count = 0);
+        currentMembers = 0;
+        history = [];
     }
-    return false;
+}
+
+function switchYear(year) {
+    currentYear = year;
+
+    // Update UI Tabs
+    showYear3Btn.classList.toggle('active', year === '3rd');
+    showYear4Btn.classList.toggle('active', year === '4th');
+
+    // Update Titles and Limits
+    mainTitle.textContent = CONFIG[year].title;
+    maxParticipantsEl.textContent = CONFIG[year].total;
+
+    // Load Data
+    loadState();
+
+    // Refresh View
+    rotation = 0;
+    updateStats();
+    drawWheel();
+    updateHistory();
+
+    // Check if finished
+    checkCompletion();
+}
+
+function checkCompletion() {
+    const totalLimit = CONFIG[currentYear].total;
+    if (currentMembers >= totalLimit) {
+        spinBtn.disabled = true;
+        spinBtn.textContent = "FINISHED";
+    } else {
+        spinBtn.disabled = false;
+        spinBtn.textContent = "SPIN";
+    }
 }
 
 // Initialize Stats
@@ -74,17 +129,19 @@ function updateStats() {
         psTableBody.appendChild(row);
     });
     memberCountEl.textContent = currentMembers;
-
-    if (currentMembers >= TOTAL_MEMBERS) {
-        spinBtn.disabled = true;
-        spinBtn.textContent = "FINISHED";
-    }
+    checkCompletion();
 }
 
 // Draw the Wheel
 function drawWheel() {
     const availablePS = PS_OPTIONS.filter(ps => ps.count < MAX_PER_PS);
     const numSegments = availablePS.length;
+
+    if (numSegments === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+    }
+
     const segmentAngle = (2 * Math.PI) / numSegments;
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
@@ -124,7 +181,8 @@ function drawWheel() {
 }
 
 function spin() {
-    if (isSpinning || currentMembers >= TOTAL_MEMBERS) return;
+    const totalLimit = CONFIG[currentYear].total;
+    if (isSpinning || currentMembers >= totalLimit) return;
 
     const availablePS = PS_OPTIONS.filter(ps => ps.count < MAX_PER_PS);
     if (availablePS.length === 0) return;
@@ -132,24 +190,18 @@ function spin() {
     isSpinning = true;
     spinBtn.disabled = true;
 
-    // 1. Pick winner BEFORE spinning to guarantee randomness
     const winnerIndex = Math.floor(Math.random() * availablePS.length);
     const winner = availablePS[winnerIndex];
 
-    // 2. Calculate target rotation
     const numSegments = availablePS.length;
     const segmentAngle = (2 * Math.PI) / numSegments;
-
-    // Position of winner segment on the wheel starts at winnerIndex * segmentAngle
-    // We want this segment to stop at the pointer (top, which is 1.5 * PI)
-    // Formula: (segment_center_angle + rotation) % 2PI = 1.5 * PI
     const randomWithinSegment = (0.2 + Math.random() * 0.6) * segmentAngle;
     const angleToTarget = (winnerIndex * segmentAngle) + randomWithinSegment;
 
     let targetRotationOffset = (1.5 * Math.PI - angleToTarget) % (2 * Math.PI);
     if (targetRotationOffset < 0) targetRotationOffset += 2 * Math.PI;
 
-    const spinDuration = 4000; // Slightly longer for better feel
+    const spinDuration = 4000;
     const startRotation = rotation;
     const extraFullSpins = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
     const targetRotation = startRotation + extraFullSpins + targetRotationOffset;
@@ -158,9 +210,7 @@ function spin() {
     function animate(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / spinDuration, 1);
-
-        // Easing out curve
-        const easeOut = 1 - Math.pow(1 - progress, 5); // Smoother ease out
+        const easeOut = 1 - Math.pow(1 - progress, 5);
         rotation = startRotation + (targetRotation - startRotation) * easeOut;
 
         drawWheel();
@@ -171,74 +221,64 @@ function spin() {
             finalizeSpin(winner);
         }
     }
-
     requestAnimationFrame(animate);
 }
 
 function finalizeSpin(winner) {
     isSpinning = false;
-
     winner.count++;
     currentMembers++;
 
-    // Add to history
     history.unshift({ ps: winner.label, color: winner.color, time: new Date().toLocaleTimeString() });
     updateHistory();
     updateStats();
     drawWheel();
-    saveState(); // Persist state
+    saveState();
 
-    // Show result
     winMessage.innerHTML = `You have been assigned<br><span class="win-ps-badge" style="background-color: ${winner.color}">${winner.label}</span>`;
     winOverlay.classList.remove('hidden');
 }
 
 function updateHistory() {
-    spinHistoryEl.innerHTML = history.slice(0, 10).map(item => `
+    spinHistoryEl.innerHTML = history.slice(0, 10).map((item, idx) => `
         <li class="history-item">
-            <span>Member #${currentMembers - history.indexOf(item)}</span>
+            <span>Entry #${history.length - idx}</span>
             <span class="history-badge" style="background-color: ${item.color}">${item.ps}</span>
         </li>
     `).join('');
 }
 
+// Event Listeners
 spinBtn.addEventListener('click', spin);
 closeOverlayBtn.addEventListener('click', () => {
     winOverlay.classList.add('hidden');
-    if (currentMembers < TOTAL_MEMBERS) {
-        spinBtn.disabled = false;
-    }
+    checkCompletion();
 });
 
 resetBtn.addEventListener('click', () => {
-    if (confirm("Are you sure you want to reset all data? This cannot be undone.")) {
-        localStorage.removeItem('wheelState');
+    if (confirm(`Are you sure you want to reset all data for ${currentYear} Year?`)) {
+        localStorage.removeItem(getStorageKey());
         location.reload();
     }
 });
 
-// Helper for verification
-window.testLogic = function (iterations = 28) {
-    console.log(`Starting test for ${iterations} spins...`);
-    for (let i = 0; i < iterations; i++) {
-        const availablePS = PS_OPTIONS.filter(ps => ps.count < MAX_PER_PS);
-        if (availablePS.length === 0) {
-            console.log("No more PS available!");
-            break;
-        }
-        const winnerIndex = Math.floor(Math.random() * availablePS.length);
-        const winner = availablePS[winnerIndex];
-        winner.count++;
-        currentMembers++;
-        console.log(`Spin ${i + 1}: Assigned ${winner.label}. Total for ${winner.label}: ${winner.count}`);
-    }
-    updateStats();
-    drawWheel();
-    console.log("Test complete. Final Stats:", PS_OPTIONS.map(p => `${p.label}: ${p.count}`).join(', '));
-};
+// Year selection logic
+selectYear3Btn.addEventListener('click', () => {
+    yearSelectOverlay.classList.add('hidden');
+    switchYear('3rd');
+});
 
-// Initial Setup
-loadState();
-updateStats();
-drawWheel();
-updateHistory();
+selectYear4Btn.addEventListener('click', () => {
+    yearSelectOverlay.classList.add('hidden');
+    switchYear('4th');
+});
+
+showYear3Btn.addEventListener('click', () => switchYear('3rd'));
+showYear4Btn.addEventListener('click', () => switchYear('4th'));
+
+// Initial state
+// Check if a year was already active in this session (optional, but starts with overlay)
+window.onload = () => {
+    // Show overlay always on fresh load for clean selection
+    yearSelectOverlay.classList.remove('hidden');
+};

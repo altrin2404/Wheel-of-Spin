@@ -14,8 +14,12 @@
 <body>
     <div class="container">
         <header>
-            <h1>Wheel of Spin</h1>
-            <p class="subtitle">Select your PS (Problem Statement). Max 6 members per PS.</p>
+            <div class="year-selector">
+                <button id="showYear3Btn" class="year-tab active">3rd Year</button>
+                <button id="showYear4Btn" class="year-tab">4th Year</button>
+            </div>
+            <h1 id="mainTitle">Wheel of Spin - 3rd Year</h1>
+            <p class="subtitle">Select your PS (Problem Statement). Max 3 members per PS.</p>
         </header>
 
         <main>
@@ -45,7 +49,7 @@
                         </table>
                     </div>
                     <div class="total-members">
-                        Total Members: <span id="memberCount">0</span> / 28
+                        Total Members: <span id="memberCount">0</span> / <span id="maxParticipants">14</span>
                     </div>
                     <button id="resetBtn" class="reset-btn">Reset All Data</button>
                 </div>
@@ -58,6 +62,18 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Year Selection Overlay -->
+    <div id="yearSelectOverlay" class="overlay">
+        <div class="overlay-content selection-card">
+            <h2>Welcome to Wheel of Spin</h2>
+            <p>Please select your year to continue</p>
+            <div class="selection-buttons">
+                <button id="selectYear3Btn" class="selection-btn">3rd Year</button>
+                <button id="selectYear4Btn" class="selection-btn">4th Year</button>
+            </div>
+        </div>
     </div>
 
     <!-- Celebration Overlay -->
